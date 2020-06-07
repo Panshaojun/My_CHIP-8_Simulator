@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<style>
+    body {
+        background-color: black;
+        text-align: center;
+    }
+
+    body:before{
+        content: '方向键控制移动，enter键重新加载游戏';
+        display: block;
+        width: 100%;
+        height: 40px;
+        line-height: 20px;
+        text-align: center;
+        color: white;
+    }
+
+    #canvas {
+        background-color: black;
+        margin-top: 100px;
+    }
+</style>
+
+<body>
+    <canvas id="canvas" width="320" height="160"></canvas>
+</body>
+<script type="module">
+    import Chip8 from './js/Chip8.js';
+    const myChip8 = new Chip8();
+    const canvas = document.querySelector('#canvas');
+    const context = canvas.getContext('2d');
+    myChip8.Graphics.setDisplay(context);
+
+    //获取游戏rom并运行
+    (()=> {
+        let req = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.req");
+        req ? (() => {
+            req.open("GET", 'Snake.ch8', true);
+            req.responseType = 'blob';
+            req.send();
+            req.onreadystatechange = () => {
+                if (req.readyState == 4) {
+                    if (req.status == 200) {
+                        let reader = new FileReader();
+                        console.log(req.response)
+                        reader.readAsArrayBuffer(req.response);
+                        reader.onload = function (e) {
+                            myChip8.Memory.loadRom(new Uint8Array(e.target.result));
+                            setInterval(() => {
+                                myChip8.main();
+                            }, 1000 / 60)
+                        }
+                    }
+                    else {
+                        alert("抱歉加载游戏资源出现了点点毛病");
+                    }
+                }
+            };
+        })() : alert('抱歉您的浏览器不支持XMLhttp!所以加载不了游戏');
+    })();
+</script>
+
+</html>
